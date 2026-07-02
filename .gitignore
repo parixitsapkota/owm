@@ -1,0 +1,9 @@
+.zed
+.cache
+.idea
+.vscode
+
+src/version.h
+
+build
+owm
