@@ -1,4 +1,5 @@
 #include "owm.h"
+#include "status/status.h"
 
 #include <X11/Xatom.h>
 #include <X11/Xft/Xft.h>
@@ -14,8 +15,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/select.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <time.h>
 #include <unistd.h>
 
 // Appearance
@@ -125,23 +128,6 @@ static const Key keys[] = {
 
     {MODKEY | ShiftMask, XK_q, quit, {0}},
 };
-
-// /* button definitions */
-// /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
-// static const Button buttons[] = {
-//     /* click                event mask      button          function        argument */
-//     {ClkLtSymbol, 0, Button1, setlayout, {0}},
-//     {ClkLtSymbol, 0, Button3, setlayout, {.v = &layouts[2]}},
-//     {ClkWinTitle, 0, Button2, zoom, {0}},
-//     {ClkStatusText, 0, Button2, spawn, {.v = termcmd}},
-//     {ClkClientWin, MODKEY, Button1, movemouse, {0}},
-//     {ClkClientWin, MODKEY, Button2, togglefloating, {0}},
-//     {ClkClientWin, MODKEY, Button3, resizemouse, {0}},
-//     {ClkTagBar, 0, Button1, view, {0}},
-//     {ClkTagBar, 0, Button3, toggleview, {0}},
-//     {ClkTagBar, MODKEY, Button1, tag, {0}},
-//     {ClkTagBar, MODKEY, Button3, toggletag, {0}},
-// };
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags {
@@ -1688,9 +1674,36 @@ void run(void) {
   XEvent ev;
   /* main event loop */
   XSync(dpy, False);
-  while (running && !XNextEvent(dpy, &ev)) {
-    if (handler[ev.type]) {
-      handler[ev.type](&ev); /* call handler */
+
+  int x11_fd = ConnectionNumber(dpy);
+  fd_set in_fds;
+  struct timeval tv;
+  time_t last_time = time(NULL);
+
+  while (running) {
+    FD_ZERO(&in_fds);
+    FD_SET(x11_fd, &in_fds);
+
+    tv.tv_sec = 1;
+    tv.tv_usec = 0;
+
+    select(x11_fd + 1, &in_fds, NULL, NULL, &tv);
+
+    time_t current_time = time(NULL);
+    if (current_time - last_time >= 1) {
+      last_time = current_time;
+
+      if (status_update(stext)) {
+        drawbars();
+        XFlush(dpy);
+      }
+    }
+
+    while (XPending(dpy)) {
+      XNextEvent(dpy, &ev);
+      if (handler[ev.type]) {
+        handler[ev.type](&ev);
+      }
     }
   }
 }
@@ -1894,6 +1907,7 @@ void setup(void) {
     scheme[i] = drw_scm_create(drw, colors[i], alphas[i], 3);
   }
   /* init bars */
+  status_init(stext);
   updatebars();
   updatestatus();
   /* supporting window for NetWMCheck */
@@ -2239,9 +2253,7 @@ void updatesizehints(Client *c) {
 }
 
 void updatestatus(void) {
-  if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext))) {
-    strcpy(stext, "owm-" VERSION);
-  }
+  status_update(stext);
   drawbar(selmon);
 }
 

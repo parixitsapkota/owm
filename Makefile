@@ -11,7 +11,7 @@ DEBUG   := -fsanitize=address -g -O0
 RELEASE := -O3 -Os
 
 DEF    := -DVERSION=\"$(VERSION)\" -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=700L
-CFLAGS := $(DEF) $(INCS) -std=c99 -pedantic -Wall -Wextra -Wno-deprecated-declarations # -Werror 
+CFLAGS := $(DEF) $(INCS) -std=c99 -pedantic -Wall -Wextra -Wno-deprecated-declarations -Werror 
 
 # Build-mode
 BUILD  := build
