@@ -63,7 +63,7 @@ static const Rule rules[] = {
 };
 
 // layout(s)
-static const float mfact = 0.55;     // factor of master area size [0.05..0.95]
+static const float mfact = 0.95;     // factor of master area size [0.05..0.95]
 static const int nmaster = 1;        // number of clients in master area
 static const int resizehints = 1;    // 1 means respect size hints in tiled resizals
 static const int lockfullscreen = 1; // 1 will force focus on the fullscreen window
@@ -75,12 +75,7 @@ static const Layout layouts[] = {
 };
 
 // MOD key
-#ifdef DEBUG
-#define MODKEY Mod1Mask
-#endif // DEBUG
-#ifndef DEBUG
 #define MODKEY Mod4Mask
-#endif // DEBUG
 
 #define TAGKEYS(KEY, TAG)                                                                                                      \
   {MODKEY, KEY, view, {.ui = 1 << TAG}}, {MODKEY | ControlMask, KEY, toggleview, {.ui = 1 << TAG}},                            \

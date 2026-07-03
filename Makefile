@@ -20,7 +20,7 @@ ifeq ($(MODE),release)
     CFLAGS += $(RELEASE)
     BUILD   := build/release
 else
-    CFLAGS += $(DEBUG) -DDEBUG
+    CFLAGS += $(DEBUG)
     BUILD   := build/debug
 endif
 
