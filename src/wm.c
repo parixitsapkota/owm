@@ -46,9 +46,10 @@ static const char *colors[][3] = {
 };
 
 static const unsigned int alphas[][3] = {
-    /*               fg      bg        border*/
+    /*               fg         bg         border   */
     [SchemeNorm] = {OPAQUE, baralpha, borderalpha},
     [SchemeSel] = {OPAQUE, baralpha, borderalpha},
+    [SchemeInd] = {OPAQUE, baralpha, borderalpha},
 };
 /* tagging */
 static const char *tags[] = {
@@ -828,7 +829,7 @@ void buttonpress(XEvent *e) {
 
 void checkotherwm(void) {
   xerrorxlib = XSetErrorHandler(xerrorstart);
-  /* this causes an error if some other window manager is running */
+  // this causes an SEGV error if some other window manager is running.
   XSelectInput(dpy, DefaultRootWindow(dpy), SubstructureRedirectMask);
   XSync(dpy, False);
   XSetErrorHandler(xerror);

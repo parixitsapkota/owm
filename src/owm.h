@@ -284,11 +284,10 @@ static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1;
 static Cur *cursor[CurLast];
 static Clr **scheme;
-static Display *dpy;
+extern Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
-
 static int useargb = 0;
 static Visual *visual;
 static int depth;
