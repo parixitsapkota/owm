@@ -1918,6 +1918,18 @@ void setup(void) {
   /* EWMH support per view */
   XChangeProperty(dpy, root, netatom[NetSupported], XA_ATOM, 32, PropModeReplace, (unsigned char *)netatom, NetLast);
   XDeleteProperty(dpy, root, netatom[NetClientList]);
+
+  // Clean the root window background with a custom Hex Color
+  XColor xcolor;
+  Colormap cmap = DefaultColormap(dpy, screen);
+
+  if (XParseColor(dpy, cmap, col_gray2, &xcolor) && XAllocColor(dpy, cmap, &xcolor)) {
+    XSetWindowBackground(dpy, root, xcolor.pixel);
+  } else {
+    XSetWindowBackground(dpy, root, BlackPixel(dpy, screen)); // Fallback
+  }
+  XClearWindow(dpy, root);
+
   /* select events */
   wa.cursor = cursor[CurNormal]->cursor;
   wa.event_mask = SubstructureRedirectMask | SubstructureNotifyMask | ButtonPressMask | PointerMotionMask | EnterWindowMask |
