@@ -3,7 +3,7 @@ INCS := -I/usr/X11R6/include -I/usr/include/freetype2 -Isrc/
 LIBS := -L/usr/X11R6/lib -lX11 -lfontconfig -lXft -lXrender
 
 # Configuration
-VERSION := 0.0.1
+VERSION := 0.0.2
 PROJ    := owm
 CC      := clang
 

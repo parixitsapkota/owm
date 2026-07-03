@@ -5,6 +5,13 @@
 #include <X11/Xlib.h>
 
 typedef struct {
+  char *icon;
+  char *command;
+  unsigned int interval;
+  unsigned int signal;
+} Block;
+
+typedef struct {
   Cursor cursor;
 } Cur;
 
@@ -212,7 +219,7 @@ void quit(const Arg *arg);
 Monitor *recttomon(int x, int y, int w, int h);
 void resize(Client *c, int x, int y, int w, int h, int interact);
 void resizeclient(Client *c, int x, int y, int w, int h);
-void resizemouse(const Arg *arg);
+void resizemouse(const Arg *ar);
 void restack(Monitor *m);
 void run(void);
 void scan(void);
@@ -257,13 +264,14 @@ int xerrorstart(Display *dpy, XErrorEvent *ee);
 void xinitvisual(void);
 void zoom(const Arg *arg);
 
-/* variables */
+// Global variables
+extern const unsigned int snap;
 static const char broken[] = "broken";
 static char stext[256];
 static int screen;
-static int sw, sh; /* X display screen geometry width, height */
-static int bh;     /* bar height */
-static int lrpad;  /* sum of left and right padding for text */
+static int sw, sh; // X display screen geometry width, height
+static int bh;     // bar height
+static int lrpad;  // sum of left and right padding for text
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
 static void (*handler[LASTEvent])(XEvent *) = {
@@ -294,33 +302,36 @@ static Visual *visual;
 static int depth;
 static Colormap cmap;
 
+// Status
+void status_init(char *dest);
+int status_update(char *dest);
+int status_sigupdate(int signum, char *dest);
+
 // WM functions
 void checkotherwm(void);
 void setup(void);
 void scan(void);
 void run(void);
 void cleanuo(void);
-
-/* macros */
+// macros
 #define BUTTONMASK (ButtonPressMask | ButtonReleaseMask)
+#define MOUSEMAK (BUTTONMASK | PointerMotionMask)
 #define CLEANMASK(mask)                                                                                                        \
   (mask & ~(numlockmask | LockMask) & (ShiftMask | ControlMask | Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask))
 #define INTERSECT(x, y, w, h, m)                                                                                               \
   (MAX(0, MIN((x) + (w), (m)->wx + (m)->ww) - MAX((x), (m)->wx)) *                                                             \
    MAX(0, MIN((y) + (h), (m)->wy + (m)->wh) - MAX((y), (m)->wy)))
 #define ISVISIBLE(C) ((C->tags & C->mon->tagset[C->mon->seltags]))
-#define MOUSEMASK (BUTTONMASK | PointerMotionMask)
 #define WIDTH(X) ((X)->w + 2 * (X)->bw)
 #define HEIGHT(X) ((X)->h + 2 * (X)->bw)
-#define TAGMASK ((1 << LENGTH(tags)) - 1)
 #define TEXTW(X) (drw_fontset_getwidth(drw, (X)) + lrpad)
+#define TAGMASK ((1 << LENGTH(tags)) - 1)
 #define OPAQUE 0xffU
-
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
 #define BETWEEN(X, A, B) ((A) <= (X) && (X) <= (B))
 #define LENGTH(X) (sizeof(X) / sizeof(X)[0])
-
+#define MOUSEMASK (BUTTONMASK | PointerMotionMask)
 #define UTF_INVALID 0xFFFD
 
 #endif // _OWM_H_

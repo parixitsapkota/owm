@@ -1,5 +1,4 @@
 #include "owm.h"
-#include "status/status.h"
 
 #include <X11/Xatom.h>
 #include <X11/Xft/Xft.h>
@@ -22,12 +21,12 @@
 #include <unistd.h>
 
 // Appearance
-static const unsigned int borderpx = 2;            // border pixel of windows
-static const unsigned int gappx = 15;              // gaps between windows
-static const unsigned int snap = gappx + borderpx; // snap pixel
-static const int showbar = 1;                      // Show bar
-static const int showvt = 1;                       // show vacant tags
-static const int topbar = 1;                       // bar position top
+static const unsigned int borderpx = 2;     // border pixel of windows
+static const unsigned int gappx = 15;       // gaps between windows
+const unsigned int snap = gappx + borderpx; // snap pixel
+static const int showbar = 1;               // Show bar
+static const int showvt = 1;                // show vacant tags
+static const int topbar = 1;                // bar position top
 
 // Fonts
 static const char jet_brains_momo[] = "JetBrains mono:size=15";
@@ -1392,23 +1391,6 @@ void maprequest(XEvent *e) {
   }
 }
 
-void monocle(Monitor *m) {
-  unsigned int n = 0;
-  Client *c;
-
-  for (c = m->clients; c; c = c->next) {
-    if (ISVISIBLE(c)) {
-      n++;
-    }
-  }
-  if (n > 0) { /* override layout symbol */
-    snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
-  }
-  for (c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
-    resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, 0);
-  }
-}
-
 void motionnotify(XEvent *e) {
   static Monitor *mon = NULL;
   Monitor *m;
@@ -1423,71 +1405,6 @@ void motionnotify(XEvent *e) {
     focus(NULL);
   }
   mon = m;
-}
-
-void movemouse(const Arg *arg) {
-  (void)arg;
-  int x, y, ocx, ocy, nx, ny;
-  Client *c;
-  Monitor *m;
-  XEvent ev;
-  Time lasttime = 0;
-
-  if (!(c = selmon->sel)) {
-    return;
-  }
-  if (c->isfullscreen) { /* no support moving fullscreen windows by mouse */
-    return;
-  }
-  restack(selmon);
-  ocx = c->x;
-  ocy = c->y;
-  if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync, None, cursor[CurMove]->cursor, CurrentTime) !=
-      GrabSuccess) {
-    return;
-  }
-  if (!getrootptr(&x, &y)) {
-    return;
-  }
-  do {
-    XMaskEvent(dpy, MOUSEMASK | ExposureMask | SubstructureRedirectMask, &ev);
-    switch (ev.type) {
-    case ConfigureRequest:
-    case Expose:
-    case MapRequest: handler[ev.type](&ev); break;
-    case MotionNotify:
-      if ((ev.xmotion.time - lasttime) <= (1000 / 60)) {
-        continue;
-      }
-      lasttime = ev.xmotion.time;
-
-      nx = ocx + (ev.xmotion.x - x);
-      ny = ocy + (ev.xmotion.y - y);
-      if (abs(selmon->wx - nx) < (int)snap) {
-        nx = selmon->wx;
-      } else if (abs((selmon->wx + selmon->ww) - (nx + WIDTH(c))) < (int)snap) {
-        nx = selmon->wx + selmon->ww - WIDTH(c);
-      }
-      if (abs(selmon->wy - ny) < (int)snap) {
-        ny = selmon->wy;
-      } else if (abs((selmon->wy + selmon->wh) - (ny + HEIGHT(c))) < (int)snap) {
-        ny = selmon->wy + selmon->wh - HEIGHT(c);
-      }
-      if (!c->isfloating && selmon->lt[selmon->sellt]->arrange && (abs(nx - c->x) > (int)snap || abs(ny - c->y) > (int)snap)) {
-        togglefloating(NULL);
-      }
-      if (!selmon->lt[selmon->sellt]->arrange || c->isfloating) {
-        resize(c, nx, ny, c->w, c->h, 1);
-      }
-      break;
-    }
-  } while (ev.type != ButtonRelease);
-  XUngrabPointer(dpy, CurrentTime);
-  if ((m = recttomon(c->x, c->y, c->w, c->h)) != selmon) {
-    sendmon(c, m);
-    selmon = m;
-    focus(NULL);
-  }
 }
 
 Client *nexttiled(Client *c) {
@@ -2001,38 +1918,6 @@ __attribute__((unused)) void tagmon(const Arg *arg) {
     return;
   }
   sendmon(selmon->sel, dirtomon(arg->i));
-}
-
-void tile(Monitor *m) {
-  unsigned int i, n, h, mw, my, ty;
-  Client *c;
-
-  for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++)
-    ;
-  if (n == 0) {
-    return;
-  }
-
-  if (n > (unsigned int)m->nmaster) {
-    mw = m->nmaster ? m->ww * m->mfact : 0;
-  } else {
-    mw = m->ww - m->gappx;
-  }
-  for (i = 0, my = ty = m->gappx, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
-    if (i < (unsigned int)m->nmaster) {
-      h = (m->wh - my) / (MIN(n, (unsigned int)m->nmaster) - i) - m->gappx;
-      resize(c, m->wx + m->gappx, m->wy + my, mw - (2 * c->bw) - m->gappx, h - (2 * c->bw), 0);
-      if ((int)(my + HEIGHT(c) + m->gappx) < m->wh) {
-        my += HEIGHT(c) + m->gappx;
-      }
-    } else {
-      h = (m->wh - ty) / (n - i) - m->gappx;
-      resize(c, m->wx + mw + m->gappx, m->wy + ty, m->ww - mw - (2 * c->bw) - 2 * m->gappx, h - (2 * c->bw), 0);
-      if ((int)(ty + HEIGHT(c) + m->gappx) < m->wh) {
-        ty += HEIGHT(c) + m->gappx;
-      }
-    }
-  }
 }
 
 void togglebar(const Arg *arg) {
