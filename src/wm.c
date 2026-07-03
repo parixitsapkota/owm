@@ -18,87 +18,80 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-/* appearance */
-static const unsigned int borderpx = 2; /* border pixel of windows */
-static const unsigned int gappx = 15;   /* gaps between windows */
-static const unsigned int snap = 32;    /* snap pixel */
-static const int showbar = 1;           /* 0 means no bar */
-static const int topbar = 1;            /* 0 means bottom bar */
-/* fonts */
-static const char *fonts[] = {"JetBrains mono:size=15"};
-static const char dmenufont[] = "JetBrains mono:size=15";
-/* colors */
-static const char col_base[] = "#282828";
-static const char col_soft[] = "#3c3836";
-static const char col_alternet[] __attribute__((unused)) = "#504945";
-static const char col_dimmed[] = "#bdae93";
-static const char col_green[] = "#b8bb26";
-static const char col_red[] = "#fb4934";
+// Appearance
+static const unsigned int borderpx = 2;            // border pixel of windows
+static const unsigned int gappx = 15;              // gaps between windows
+static const unsigned int snap = gappx + borderpx; // snap pixel
+static const int showbar = 1;                      // Show bar
+static const int showvt = 1;                       // show vacant tags
+static const int topbar = 1;                       // bar position top
 
-static const unsigned int baralpha = 0xca;
-static const unsigned int borderalpha = OPAQUE;
+// Fonts
+static const char jet_brains_momo[] = "JetBrains mono:size=15";
+static const char *fonts[] = {jet_brains_momo};
+
+static const char col_black[] = "#0f0f0f";
+static const char col_gray1[] = "#1e1f1e";
+static const char col_gray2[] = "#3b403c";
+static const char col_white[] = "#f4decd";
+static const char col_blue[] = "#71b4d6";
 
 static const char *colors[][3] = {
-    /*               fg         bg         border   */
-    [SchemeNorm] = {col_dimmed, col_base, col_soft},
-    [SchemeInd] = {col_base, col_red, NULL},
-    [SchemeSel] = {col_base, col_green, col_green},
+    //               fg         bg         border
+    [SchemeNorm] = {col_white, col_black, col_gray1},
+    [SchemeSel] = {col_white, col_gray2, col_blue},
+    [SchemeUnsel] = {col_blue, col_gray1, col_black},
 };
 
 static const unsigned int alphas[][3] = {
-    /*               fg         bg         border   */
-    [SchemeNorm] = {OPAQUE, baralpha, borderalpha},
-    [SchemeSel] = {OPAQUE, baralpha, borderalpha},
-    [SchemeInd] = {OPAQUE, baralpha, borderalpha},
+    //               fg         bg         border
+    [SchemeNorm] = {OPAQUE, 0xCA, OPAQUE},
+    [SchemeSel] = {OPAQUE, OPAQUE, OPAQUE},
+    [SchemeUnsel] = {OPAQUE, 0xCA, 0xCA},
 };
-/* tagging */
+
+// tag(s)
 static const char *tags[] = {
     "1", "2", "3", "4", "5",
 };
 
 static const Rule rules[] = {
-    /* xprop(1):
-     *	WM_CLASS(STRING) = instance, class
-     *	WM_NAME(STRING) = title
-     */
-    /* class instance title tags_mask isfloating monitor */
-    {"firefox", NULL, NULL, 1 << 0, 0, -1},
+    {"firefox", NULL, "firefox", 1 << 0, 0, -1},
 };
 
-/* layout(s) */
-static const float mfact = 0.55;     /* factor of master area size [0.05..0.95] */
-static const int nmaster = 1;        /* number of clients in master area */
-static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
-static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
+// layout(s)
+static const float mfact = 0.55;     // factor of master area size [0.05..0.95]
+static const int nmaster = 1;        // number of clients in master area
+static const int resizehints = 1;    // 1 means respect size hints in tiled resizals
+static const int lockfullscreen = 1; // 1 will force focus on the fullscreen window
 
 static const Layout layouts[] = {
-    /* symbol     arrange function */
-    {"[]=", tile}, /* first entry is default */
-    {"<><", NULL}, /* no layout function means floating behavior */
-    {"[M]", monocle},
+    {"T", tile}, // default
+    {"F", NULL},
+    {"M", monocle},
 };
 
-/* key definitions */
+// MOD key
+#ifdef DEBUG
+#define MODKEY Mod1Mask
+#endif // DEBUG
+#ifndef DEBUG
 #define MODKEY Mod4Mask
+#endif // DEBUG
+
 #define TAGKEYS(KEY, TAG)                                                                                                      \
   {MODKEY, KEY, view, {.ui = 1 << TAG}}, {MODKEY | ControlMask, KEY, toggleview, {.ui = 1 << TAG}},                            \
-      {MODKEY | ShiftMask, KEY, tag, {.ui = 1 << TAG}}, {MODKEY | ControlMask | ShiftMask, KEY, toggletag, {.ui = 1 << TAG}},
-
-/* helper for spawning shell commands in the pre owm-5.0 fashion */
-#define SHCMD(cmd)                                                                                                             \
-  {                                                                                                                            \
-    .v = (const char *[]) { "/bin/sh", "-c", cmd, NULL }                                                                       \
+      {MODKEY | ShiftMask, KEY, tag, {.ui = 1 << TAG}}, {                                                                      \
+    MODKEY | ControlMask | ShiftMask, KEY, toggletag, { .ui = 1 << TAG }                                                       \
   }
 
-/* commands */
-static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = {"dmenu_run", "-m", dmenumon, "-fn", dmenufont, NULL};
+// Commands
+static char dmenumon[2] = "0";
+static const char *dmenucmd[] = {"dmenu_run", "-m", dmenumon, "-fn", jet_brains_momo, NULL};
 static const char *dmenu_wp[] = {"dmenu_wallpaper", NULL};
 static const char *termcmd[] = {"st", NULL};
-static const char *browser[] = {"librewolf", NULL};
+static const char *browser[] = {"firefox", NULL};
 static const char *explorer[] = {"nautilus", NULL};
-static const char *bright[] = {"brightnessctl set 10%+", NULL};
-static const char *dim[] = {"brightnessctl set 10%-", NULL};
 
 static const Key keys[] = {
     /* modifier                     key        function        argument */
@@ -119,36 +112,36 @@ static const Key keys[] = {
     {MODKEY, XK_s, zoom, {0}},
     {MODKEY, XK_Tab, view, {0}},
     {MODKEY, XK_q, killclient, {0}},
+
     {MODKEY, XK_t, setlayout, {.v = &layouts[0]}},
     {MODKEY, XK_f, setlayout, {.v = &layouts[1]}},
     {MODKEY, XK_m, setlayout, {.v = &layouts[2]}},
-    {MODKEY | ShiftMask, XK_space, setlayout, {0}},
 
-    {MODKEY, XK_F5, spawn, {.v = bright}},
-    {MODKEY, XK_F6, spawn, {.v = dim}},
+    TAGKEYS(XK_1, 0),
+    TAGKEYS(XK_2, 1),
+    TAGKEYS(XK_3, 2),
+    TAGKEYS(XK_4, 3),
+    TAGKEYS(XK_5, 4),
 
-    TAGKEYS(XK_1, 0) TAGKEYS(XK_2, 1) TAGKEYS(XK_3, 2) TAGKEYS(XK_4, 3) TAGKEYS(XK_5, 4) TAGKEYS(XK_6, 5) TAGKEYS(XK_7, 5)
-        TAGKEYS(XK_8, 5) TAGKEYS(XK_9, 5)
-
-            {MODKEY | ShiftMask, XK_q, quit, {0}},
+    {MODKEY | ShiftMask, XK_q, quit, {0}},
 };
 
-/* button definitions */
-/* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
-static const Button buttons[] = {
-    /* click                event mask      button          function        argument */
-    {ClkLtSymbol, 0, Button1, setlayout, {0}},
-    {ClkLtSymbol, 0, Button3, setlayout, {.v = &layouts[2]}},
-    {ClkWinTitle, 0, Button2, zoom, {0}},
-    {ClkStatusText, 0, Button2, spawn, {.v = termcmd}},
-    {ClkClientWin, MODKEY, Button1, movemouse, {0}},
-    {ClkClientWin, MODKEY, Button2, togglefloating, {0}},
-    {ClkClientWin, MODKEY, Button3, resizemouse, {0}},
-    {ClkTagBar, 0, Button1, view, {0}},
-    {ClkTagBar, 0, Button3, toggleview, {0}},
-    {ClkTagBar, MODKEY, Button1, tag, {0}},
-    {ClkTagBar, MODKEY, Button3, toggletag, {0}},
-};
+// /* button definitions */
+// /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
+// static const Button buttons[] = {
+//     /* click                event mask      button          function        argument */
+//     {ClkLtSymbol, 0, Button1, setlayout, {0}},
+//     {ClkLtSymbol, 0, Button3, setlayout, {.v = &layouts[2]}},
+//     {ClkWinTitle, 0, Button2, zoom, {0}},
+//     {ClkStatusText, 0, Button2, spawn, {.v = termcmd}},
+//     {ClkClientWin, MODKEY, Button1, movemouse, {0}},
+//     {ClkClientWin, MODKEY, Button2, togglefloating, {0}},
+//     {ClkClientWin, MODKEY, Button3, resizemouse, {0}},
+//     {ClkTagBar, 0, Button1, view, {0}},
+//     {ClkTagBar, 0, Button3, toggleview, {0}},
+//     {ClkTagBar, MODKEY, Button1, tag, {0}},
+//     {ClkTagBar, MODKEY, Button3, toggletag, {0}},
+// };
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags {
@@ -528,6 +521,23 @@ int drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned in
   return x + (render ? w : 0);
 }
 
+int drw_text_centered(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lpad, const char *text, int invert) {
+  int render = x || y || w || h;
+  unsigned int tw;
+
+  if (!render) {
+    return drw_text(drw, x, y, w, h, lpad, text, invert);
+  }
+
+  tw = drw_fontset_getwidth(drw, text);
+
+  if (w > lpad && tw < w - lpad) {
+    lpad += (w - lpad - tw) / 2;
+  }
+
+  return drw_text(drw, x, y, w, h, lpad, text, invert);
+}
+
 void drw_map(Drw *drw, Window win, int x, int y, unsigned int w, unsigned int h) {
   if (!drw) {
     return;
@@ -772,61 +782,6 @@ void attachstack(Client *c) {
   c->mon->stack = c;
 }
 
-void buttonpress(XEvent *e) {
-  unsigned int i, x, click;
-  Arg arg = {0};
-  Client *c;
-  Monitor *m;
-  XButtonPressedEvent *ev = &e->xbutton;
-
-  click = ClkRootWin;
-  /* focus monitor if necessary */
-  if ((m = wintomon(ev->window)) && m != selmon) {
-    unfocus(selmon->sel, 1);
-    selmon = m;
-    focus(NULL);
-  }
-
-  if (ev->window == selmon->barwin) {
-    i = x = 0;
-    unsigned int occ = 0;
-
-    for (c = m->clients; c; c = c->next) {
-      occ |= c->tags == TAGMASK ? 0 : c->tags;
-    }
-
-    do {
-      /* Do not reserve space for vacant tags */
-      if (!(occ & 1 << i || m->tagset[m->seltags] & 1 << i)) {
-        continue;
-      }
-      x += TEXTW(tags[i]);
-    } while ((unsigned int)ev->x >= x && ++i < LENGTH(tags));
-
-    if (i < LENGTH(tags)) {
-      click = ClkTagBar;
-      arg.ui = 1 << i;
-    } else if ((unsigned int)ev->x < x + TEXTW(selmon->ltsymbol)) {
-      click = ClkLtSymbol;
-    } else if (ev->x > selmon->ww - (int)TEXTW(stext)) {
-      click = ClkStatusText;
-    } else {
-      click = ClkWinTitle;
-    }
-  } else if ((c = wintoclient(ev->window))) {
-    focus(c);
-    restack(selmon);
-    XAllowEvents(dpy, ReplayPointer, CurrentTime);
-    click = ClkClientWin;
-  }
-  for (i = 0; i < LENGTH(buttons); i++) {
-    if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button &&
-        CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state)) {
-      buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
-    }
-  }
-}
-
 void checkotherwm(void) {
   xerrorxlib = XSetErrorHandler(xerrorstart);
   // this causes an SEGV error if some other window manager is running.
@@ -1067,7 +1022,7 @@ Monitor *dirtomon(int dir) {
 }
 
 void drawbar(Monitor *m) {
-  int x, w, tw = 0;
+  int x, w, tw = 0, lw;
   int boxs = drw->fonts->h / 9;
   int boxw = drw->fonts->h / 6 + 2;
   unsigned int i, occ = 0, urg = 0;
@@ -1077,11 +1032,11 @@ void drawbar(Monitor *m) {
     return;
   }
 
-  /* draw status first so it can be overdrawn by tags later */
+  // Draw status first
   if (m == selmon) { /* status is only drawn on selected monitor */
     drw_setscheme(drw, scheme[SchemeNorm]);
     tw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
-    drw_text(drw, m->ww - tw, 0, tw, bh, 0, stext, 0);
+    drw_text_centered(drw, m->ww - tw - 10, 0, tw + 10, bh, 0, stext, 0);
   }
 
   for (c = m->clients; c; c = c->next) {
@@ -1092,23 +1047,24 @@ void drawbar(Monitor *m) {
   }
   x = 0;
   for (i = 0; i < LENGTH(tags); i++) {
-    /* Do not draw vacant tags */
-    if (!(occ & 1 << i || m->tagset[m->seltags] & 1 << i)) {
+    // Do not draw vacant tags
+    if (!showvt && !(occ & 1 << i || m->tagset[m->seltags] & 1 << i)) {
       continue;
     }
     w = TEXTW(tags[i]);
-    drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
+    drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeUnsel]);
     drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
     x += w;
   }
-  w = TEXTW(m->ltsymbol);
-  drw_setscheme(drw, scheme[SchemeInd]);
-  x = drw_text(drw, x, 0, w, bh, lrpad / 2, m->ltsymbol, 0);
 
-  if ((w = m->ww - tw - x) > bh) {
+  // measure layout symbol
+  lw = TEXTW(m->ltsymbol);
+
+  // Draw selected title
+  if ((w = m->ww - tw - lw - x - 10) > bh) {
     if (m->sel) {
       drw_setscheme(drw, scheme[SchemeNorm]);
-      drw_text(drw, x, 0, w, bh, lrpad / 2, m->sel->name, 0);
+      drw_text_centered(drw, x, 0, w, bh, lrpad / 2, m->sel->name, 0);
       if (m->sel->isfloating) {
         drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
       }
@@ -1116,7 +1072,13 @@ void drawbar(Monitor *m) {
       drw_setscheme(drw, scheme[SchemeNorm]);
       drw_rect(drw, x, 0, w, bh, 1, 1);
     }
+    x += w;
   }
+
+  // layout symbol
+  drw_setscheme(drw, scheme[SchemeSel]);
+  drw_text(drw, x, 0, lw, bh, lrpad / 2, m->ltsymbol, 0);
+
   drw_map(drw, m->barwin, 0, 0, m->ww, bh);
 }
 
@@ -1173,7 +1135,7 @@ void focus(Client *c) {
     }
     detachstack(c);
     attachstack(c);
-    grabbuttons(c, 1);
+
     XSetWindowBorder(dpy, c->win, scheme[SchemeSel][ColBorder].pixel);
     setfocus(c);
   } else {
@@ -1302,26 +1264,6 @@ int gettextprop(Window w, Atom atom, char *text, unsigned int size) {
   return 1;
 }
 
-void grabbuttons(Client *c, int focused) {
-  updatenumlockmask();
-  {
-    unsigned int i, j;
-    unsigned int modifiers[] = {0, LockMask, numlockmask, numlockmask | LockMask};
-    XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
-    if (!focused) {
-      XGrabButton(dpy, AnyButton, AnyModifier, c->win, False, BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
-    }
-    for (i = 0; i < LENGTH(buttons); i++) {
-      if (buttons[i].click == ClkClientWin) {
-        for (j = 0; j < LENGTH(modifiers); j++) {
-          XGrabButton(dpy, buttons[i].button, buttons[i].mask | modifiers[j], c->win, False, BUTTONMASK, GrabModeAsync,
-                      GrabModeSync, None, None);
-        }
-      }
-    }
-  }
-}
-
 void grabkeys(void) {
   updatenumlockmask();
   {
@@ -1426,7 +1368,7 @@ void manage(Window w, XWindowAttributes *wa) {
   updatesizehints(c);
   updatewmhints(c);
   XSelectInput(dpy, w, EnterWindowMask | FocusChangeMask | PropertyChangeMask | StructureNotifyMask);
-  grabbuttons(c, 0);
+
   if (!c->isfloating) {
     c->isfloating = c->oldstate = trans != None || c->isfixed;
   }
@@ -2122,8 +2064,8 @@ void unfocus(Client *c, int setfocus) {
   if (!c) {
     return;
   }
-  grabbuttons(c, 0);
-  XSetWindowBorder(dpy, c->win, scheme[SchemeNorm][ColBorder].pixel);
+
+  XSetWindowBorder(dpy, c->win, scheme[SchemeUnsel][ColBorder].pixel);
   if (setfocus) {
     XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
     XDeleteProperty(dpy, root, netatom[NetActiveWindow]);

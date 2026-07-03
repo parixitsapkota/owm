@@ -9,6 +9,7 @@ XEPHYR_PKG="xorg-server-xephyr"
 LOG_FILE="./build/temp/owm.log"
 OWM_BIN="./owm"
 
+make clean all
 mkdir -p ./build/temp/ 
 
 msg() {
@@ -45,9 +46,11 @@ cleanup() {
     msg "Tearing down nested environment..."
     if [ -n "${XEPHYR_PID:-}" ] && kill -0 "$XEPHYR_PID" &>/dev/null; then
         kill "$XEPHYR_PID"
+        exit 1
     fi
+    exit 0
 }
-trap cleanup EXIT
+trap cleanup exit
 
 msg "Starting Xephyr on display $DISPLAY_NUM ($RESOLUTION)..."
 Xephyr -br -ac -screen "$RESOLUTION" "$DISPLAY_NUM" 2> "$LOG_FILE" &

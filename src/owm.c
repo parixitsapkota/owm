@@ -21,9 +21,6 @@ int main(int argc, char *argv[]) {
     die("owm: cannot open display");
   }
 
-  printf("[DEBUG main.c] Address of pointer variable dpy: %p\n", (void *)&dpy);
-  printf("[DEBUG main.c] Value inside dpy pointer: %p\n", (void *)dpy);
-
   checkotherwm();
   setup();
   scan();

@@ -70,8 +70,9 @@ void die(const char *fmt, ...);
 void *ecalloc(size_t nmemb, size_t size);
 
 /* enums */
-enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel, SchemeInd };       /* color schemes */
+enum { CurNormal, CurResize, CurMove, CurLast }; // cursor
+
+enum { SchemeNorm, SchemeSel, SchemeUnsel }; // color schemes
 enum {
   NetSupported,
   NetWMName,
@@ -169,7 +170,6 @@ void arrange(Monitor *m);
 void arrangemon(Monitor *m);
 void attach(Client *c);
 void attachstack(Client *c);
-void buttonpress(XEvent *e);
 void checkotherwm(void);
 void cleanup(void);
 void cleanupmon(Monitor *mon);
@@ -266,20 +266,21 @@ static int bh;     /* bar height */
 static int lrpad;  /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
-static void (*handler[LASTEvent])(XEvent *) = {[ButtonPress] = buttonpress,
-                                               [ClientMessage] = clientmessage,
-                                               [ConfigureRequest] = configurerequest,
-                                               [ConfigureNotify] = configurenotify,
-                                               [DestroyNotify] = destroynotify,
-                                               [EnterNotify] = enternotify,
-                                               [Expose] = expose,
-                                               [FocusIn] = focusin,
-                                               [KeyPress] = keypress,
-                                               [MappingNotify] = mappingnotify,
-                                               [MapRequest] = maprequest,
-                                               [MotionNotify] = motionnotify,
-                                               [PropertyNotify] = propertynotify,
-                                               [UnmapNotify] = unmapnotify};
+static void (*handler[LASTEvent])(XEvent *) = {
+    // Event handlers
+    [ClientMessage] = clientmessage,
+    [ConfigureRequest] = configurerequest,
+    [ConfigureNotify] = configurenotify,
+    [DestroyNotify] = destroynotify,
+    [EnterNotify] = enternotify,
+    [Expose] = expose,
+    [FocusIn] = focusin,
+    [KeyPress] = keypress,
+    [MappingNotify] = mappingnotify,
+    [MapRequest] = maprequest,
+    [MotionNotify] = motionnotify,
+    [PropertyNotify] = propertynotify,
+    [UnmapNotify] = unmapnotify};
 static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1;
 static Cur *cursor[CurLast];

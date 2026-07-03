@@ -20,7 +20,7 @@ ifeq ($(MODE),release)
     CFLAGS += $(RELEASE)
     BUILD   := build/release
 else
-    CFLAGS += $(DEBUG)
+    CFLAGS += $(DEBUG) -DDEBUG
     BUILD   := build/debug
 endif
 
@@ -38,11 +38,9 @@ OBJECTS := $(patsubst src/%.c, $(BUILD)/%.o, $(C_SOURCES))
 all: format $(PROJ)
 
 # Link all objects
-CCFLAGS := $(CFLAGS)
-LDFLAGS := $(LIBS)
 $(PROJ): $(OBJECTS)
 	@echo "Linking $(PROJ) ($(MODE) mode)..."
-	@$(CC) $(OBJECTS) -o $(PROJ) $(CCFLAGS) $(LDFLAGS)
+	@$(CC) $(OBJECTS) -o $(PROJ) $(CFLAGS) $(LIBS)
 
 # Build all source files
 $(BUILD)/%.o: src/%.c
@@ -61,8 +59,7 @@ format:
 	@clang-format -i $(SRCFILES)
 
 # Install
-install: clean all
-ifeq ($(MODE),release)
+install: clean $(PROJ)
 	@echo "Installing $(PROJ)..."
 	@mkdir -p ${DESTDIR}${PREFIX}/bin
 	@cp -f $(PROJ) ${DESTDIR}${PREFIX}/bin
@@ -70,10 +67,6 @@ ifeq ($(MODE),release)
 	@mkdir -p ${DESTDIR}${MANPREFIX}/man1
 	@sed "s/VERSION/${VERSION}/g" < res/$(PROJ).1 > ${DESTDIR}${MANPREFIX}/man1/$(PROJ).1
 	@chmod 644 ${DESTDIR}${MANPREFIX}/man1/$(PROJ).1
-else
-	@echo "INFO: Can't install $(PROJ) in debug mode."
-	@echo "INFO: make install MODE=release"
-endif
 
 # Uninstall
 uninstall:
