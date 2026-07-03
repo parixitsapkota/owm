@@ -33,6 +33,7 @@ static const int topbar = 1;                       // bar position top
 static const char jet_brains_momo[] = "JetBrains mono:size=15";
 static const char *fonts[] = {jet_brains_momo};
 
+static const char col_bg[] = "#272a28";
 static const char col_black[] = "#0f0f0f";
 static const char col_gray1[] = "#1e1f1e";
 static const char col_gray2[] = "#3b403c";
@@ -1918,7 +1919,7 @@ void setup(void) {
   XColor xcolor;
   Colormap cmap = DefaultColormap(dpy, screen);
 
-  if (XParseColor(dpy, cmap, col_gray2, &xcolor) && XAllocColor(dpy, cmap, &xcolor)) {
+  if (XParseColor(dpy, cmap, col_bg, &xcolor) && XAllocColor(dpy, cmap, &xcolor)) {
     XSetWindowBackground(dpy, root, xcolor.pixel);
   } else {
     XSetWindowBackground(dpy, root, BlackPixel(dpy, screen)); // Fallback

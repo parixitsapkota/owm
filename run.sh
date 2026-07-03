@@ -9,7 +9,7 @@ XEPHYR_PKG="xorg-server-xephyr"
 LOG_FILE="./build/temp/owm.log"
 OWM_BIN="./owm"
 
-make clean all
+make
 mkdir -p ./build/temp/ 
 
 msg() {
