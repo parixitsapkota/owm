@@ -3,7 +3,7 @@ INCS := -I/usr/X11R6/include -I/usr/include/freetype2 -Isrc/
 LIBS := -L/usr/X11R6/lib -lX11 -lfontconfig -lXft -lXrender
 
 # Configuration
-VERSION := 0.0.1
+VERSION := 0.0.2
 PROJ    := owm
 CC      := clang
 
@@ -61,16 +61,17 @@ format:
 # Install
 install: clean $(PROJ)
 	@echo "Installing $(PROJ)..."
-	@mkdir -p ${DESTDIR}${PREFIX}/bin
-	@cp -f $(PROJ) ${DESTDIR}${PREFIX}/bin
-	@chmod 755 ${DESTDIR}${PREFIX}/bin/$(PROJ)
-	@mkdir -p ${DESTDIR}${MANPREFIX}/man1
-	@sed "s/VERSION/${VERSION}/g" < res/$(PROJ).1 > ${DESTDIR}${MANPREFIX}/man1/$(PROJ).1
-	@chmod 644 ${DESTDIR}${MANPREFIX}/man1/$(PROJ).1
+	@mkdir -p $(PREFIX)/bin
+	@cp -f $(PROJ) $(PREFIX)/bin
+	@chmod 755 $(PREFIX)/bin/$(PROJ)
+	@mkdir -p $(MANPREFIX)/man1
+	@sed "s/VERSION/$(VERSION)/g" < res/$(PROJ).1 > $(MANPREFIX)/man1/$(PROJ).1
+	@chmod 644 $(MANPREFIX)/man1/$(PROJ).1
+	@echo "Installed $(PROJ) to $(PREFIX)/bin/.."
 
 # Uninstall
 uninstall:
-	@rm -f ${DESTDIR}${MANPREFIX}/man1/$(PROJ).1
-	@rm -f ${DESTDIR}${PREFIX}/bin/$(PROJ)
+	@rm -f $(MANPREFIX)/man1/$(PROJ).1
+	@rm -f $(PREFIX)/bin/$(PROJ)
 
 .PHONY: all clean format install uninstall

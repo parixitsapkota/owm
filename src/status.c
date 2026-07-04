@@ -1,3 +1,5 @@
+#include "owm.h"
+
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
@@ -6,17 +8,9 @@
 #define SIGPLUS SIGRTMIN
 #define SIGMINUS SIGRTMIN
 
-#define LENGTH(X) (sizeof(X) / sizeof(X[0]))
-#define CMDLENGTH 50
-#define MIN(a, b) ((a < b) ? a : b)
 #define STATUSLENGTH (LENGTH(blocks) * CMDLENGTH + 1)
 
-typedef struct {
-  char *icon;
-  char *command;
-  unsigned int interval;
-  unsigned int signal;
-} Block;
+#define CMDLENGTH 50
 
 static const Block blocks[] = {
     //         Icon    Command        Update Interval    Update Signal
