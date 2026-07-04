@@ -70,7 +70,6 @@ static const int lockfullscreen = 1; // 1 will force focus on the fullscreen win
 
 static const Layout layouts[] = {
     {"T", tile}, // default
-    {"F", NULL},
     {"M", monocle},
 };
 
